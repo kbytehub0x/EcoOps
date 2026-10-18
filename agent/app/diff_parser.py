@@ -87,7 +87,7 @@ run-pruned-tests:
   stage: test
   image: python:3.11-slim
   rules:
-    - when: always
+    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
   before_script:
     - pip install pytest
   script:

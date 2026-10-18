@@ -8,9 +8,9 @@ workflow:
 
 stages:
   - analyze
-  - execute-tests
+  - test
 
-generate-child-pipeline:
+generate-config:
   stage: analyze
   image: python:3.11-slim
   before_script:
@@ -30,10 +30,11 @@ generate-child-pipeline:
       - generated-config.yml
     expire_in: 1 day
 
-trigger-dynamic-tests:
-  stage: execute-tests
+trigger-child:
+  stage: test
+  needs: ["generate-config"]
   trigger:
     include:
       - artifact: generated-config.yml
-        job: generate-child-pipeline
+        job: generate-config
     strategy: depend

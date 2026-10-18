@@ -45,6 +45,7 @@ class TestDiffParser(unittest.TestCase):
         yaml_text = generate_child_pipeline_yaml(selected, fallback_triggered=False)
         self.assertIn("Carbon-Optimized Pruned Test Suite", yaml_text)
         self.assertIn("pytest demo-app/tests/test_auth.py -v", yaml_text)
+        self.assertIn('$CI_PIPELINE_SOURCE == "parent_pipeline"', yaml_text)
 
     def test_child_pipeline_yaml_generation_fallback(self):
         yaml_text = generate_child_pipeline_yaml(FULL_TEST_SUITE, fallback_triggered=True)

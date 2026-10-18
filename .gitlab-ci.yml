@@ -9,10 +9,10 @@ workflow:
 
 stages:
   - analyze
-  - execute-tests
+  - test
 
 # Job 1: Analyze commit diff and generate dynamic child pipeline artifact
-generate-child-pipeline:
+generate-config:
   stage: analyze
   image: python:3.11-slim
   before_script:
@@ -39,10 +39,11 @@ generate-child-pipeline:
     expire_in: 1 day
 
 # Job 2: Trigger the dynamic child pipeline using the generated artifact
-trigger-dynamic-tests:
-  stage: execute-tests
+trigger-child:
+  stage: test
+  needs: ["generate-config"]
   trigger:
     include:
       - artifact: generated-config.yml
-        job: generate-child-pipeline
+        job: generate-config
     strategy: depend

@@ -119,10 +119,10 @@ To satisfy the hackathon's GitLab Duo requirement, EcoOps integrates through two
 
 1. **Custom Agent in GitLab AI Catalog (UI Configuration):**
    * Navigate to **Project Settings > AI > Agents** (or the AI Catalog).
-   * Create an agent named **EcoOps Carbon Auditor**.
+   * Create an agent named **EcoOps Auditor**.
    * Set Model to **Claude 3.5 Sonnet** (via GitLab Duo).
-   * Register the `analyze_changes` tool pointing to the EcoOps service endpoint.
-   * Provide the system prompt instruct Duo to interpret test diffs and explain the operational emissions estimate.
+   * Provide the system prompt (from `.gitlab/agents/ecoops/config.yaml`) instructing Duo to explain the generated audit report.
+   * Enable the agent in the project, then open Duo Chat in an MR and prompt: `@EcoOps Auditor explain the carbon audit report`.
 
 2. **Duo Flow Execution Environment (`.gitlab/duo/agent-config.yml`):**
    * Configures the container image (`python:3.11-slim`), setup commands, and cache policies for automated Duo agent flow executions in CI.
