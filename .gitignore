@@ -1,0 +1,20 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and virtual environments
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+.env
+
+# Generated pipeline test artifacts
+generated-*.yml
+
+# Private planning / notes (never commit to public repo)
+ROADMAP.md
+*.local.md

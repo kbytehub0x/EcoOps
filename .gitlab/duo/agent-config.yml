@@ -1,0 +1,17 @@
+# GitLab Duo Flow Execution Environment Configuration
+# Official Schema Reference: https://docs.gitlab.com/user/duo_agent_platform/flows/execution/agent-config-yaml/
+#
+# Configures the containerized environment used when a GitLab Duo Flow executes
+# automated agent workflows in CI/CD pipelines.
+
+image: python:3.11-slim
+
+setup_commands:
+  - pip install --no-cache-dir -r agent/requirements.txt
+
+cache:
+  paths:
+    - .cache/
+
+network:
+  policy: default

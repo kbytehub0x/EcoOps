@@ -1,0 +1,39 @@
+# GitLab CI Configuration for demo-app
+# Dynamic Child Pipeline Pattern with MR Context Rules
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - analyze
+  - execute-tests
+
+generate-child-pipeline:
+  stage: analyze
+  image: python:3.11-slim
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git
+  script:
+    - echo "EcoOps: Analyzing commit diff..."
+    - |
+      if [ -n "$CI_MERGE_REQUEST_IID" ]; then
+        git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...HEAD)
+      else
+        CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_SHA || git diff --name-only HEAD~1 || true)
+      fi
+    - python3 -m agent.app.cli --files $CHANGED_FILES --output-yaml generated-config.yml
+  artifacts:
+    paths:
+      - generated-config.yml
+    expire_in: 1 day
+
+trigger-dynamic-tests:
+  stage: execute-tests
+  trigger:
+    include:
+      - artifact: generated-config.yml
+        job: generate-child-pipeline
+    strategy: depend

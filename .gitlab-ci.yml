@@ -1,0 +1,48 @@
+# GitLab CI Root Pipeline for EcoOps
+# Dynamic Child Pipeline Pattern with MR Context Rules
+# Reference: https://docs.gitlab.com/ci/pipelines/downstream_pipelines/
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+stages:
+  - analyze
+  - execute-tests
+
+# Job 1: Analyze commit diff and generate dynamic child pipeline artifact
+generate-child-pipeline:
+  stage: analyze
+  image: python:3.11-slim
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git
+  script:
+    - echo "=== EcoOps: Analyzing Git Diff ==="
+    - |
+      if [ -n "$CI_MERGE_REQUEST_IID" ]; then
+        echo "Detected Merge Request context (MR #$CI_MERGE_REQUEST_IID)"
+        git fetch origin $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
+        CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME...HEAD)
+      else
+        echo "Detected branch/commit context ($CI_COMMIT_SHA)"
+        CHANGED_FILES=$(git diff-tree --no-commit-id --name-only -r $CI_COMMIT_SHA || git diff --name-only HEAD~1 || true)
+      fi
+    - echo "Modified files detected:"
+    - echo "$CHANGED_FILES"
+    - python3 -m agent.app.cli --files $CHANGED_FILES --output-yaml generated-config.yml
+    - echo "=== Generated Child Pipeline Config ==="
+    - cat generated-config.yml
+  artifacts:
+    paths:
+      - generated-config.yml
+    expire_in: 1 day
+
+# Job 2: Trigger the dynamic child pipeline using the generated artifact
+trigger-dynamic-tests:
+  stage: execute-tests
+  trigger:
+    include:
+      - artifact: generated-config.yml
+        job: generate-child-pipeline
+    strategy: depend
